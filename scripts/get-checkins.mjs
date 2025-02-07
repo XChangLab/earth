@@ -25,7 +25,8 @@ const start = (offset = 0) => {
 
       if (!items || !items.length) {
         console.log('No more items.');
-        const FILE = path.resolve(__dirname, '../data/checkins.json');
+        // const FILE = path.resolve(__dirname, '../data/checkins.json');
+        const FILE = path.resolve(process.cwd(), 'data/checkins.json');
         console.log('DONE: writing file ' + FILE);
         fs.writeFileSync(FILE, JSON.stringify(checkins, null, '\t'));
         return;

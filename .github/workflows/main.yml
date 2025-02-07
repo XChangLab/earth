@@ -16,6 +16,8 @@ jobs:
           npm ci
           npm run checkins
           npm run build
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
       - uses: JamesIves/github-pages-deploy-action@v4.3.3
         with:
           branch: gh-pages

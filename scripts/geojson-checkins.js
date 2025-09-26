@@ -23,6 +23,7 @@ const geojson = {
         date: parseInt(year + month + day, 10),
         country,
         cc,
+        name,
       },
       geometry: {
         type: 'Point',

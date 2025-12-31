@@ -215,9 +215,8 @@ map.once('load', async () => {
       <br>
       <b>${name}</b>
       <br>
-      ${numberWithCommas(checkins_count)} check-in${
-      checkins_count > 1 ? 's' : ''
-    }
+      ${numberWithCommas(checkins_count)} check-in${checkins_count > 1 ? 's' : ''
+      }
       <br>
       ${numberWithCommas(places_count)} place${places_count > 1 ? 's' : ''}
     `;
@@ -338,6 +337,23 @@ map.once('styledata', () => {
 
   map.on('mouseleave', 'cluster', () => {
     canvas.style.cursor = '';
+  });
+
+  map.on('click', 'checkins',  (e) => {
+      const coordinates = e.lngLat;
+      const name = e.features[0].properties.name;
+      new mapboxgl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(name)
+        .addTo(map);
+  });
+
+  map.on('mouseenter', 'checkins',  () => {
+      canvas.style.cursor = 'pointer';
+  });
+
+  map.on('mouseleave', 'checkins',  () => {
+      canvas.style.cursor = '';
   });
 
   map.addSource('lines', {

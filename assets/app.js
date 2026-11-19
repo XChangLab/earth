@@ -129,16 +129,20 @@ function renderNumber(el, number) {
 
 const dataUrl = new URL('../data/checkins.min.json', import.meta.url);
 
-map.once('load', async () => {
-  const data = await fetch(dataUrl).then((res) => res.json());
+const $yearSelect = document.getElementById('year-select');
+
+function renderYear(allFeatures, year) {
+  const features = year
+    ? allFeatures.filter((f) => Math.floor(f.properties.date / 10000) === year)
+    : allFeatures;
   const _countries = {};
   const _places = {};
 
-  const checkinsCount = data.features.length;
+  const checkinsCount = features.length;
 
   const lines = [];
 
-  data.features = data.features.filter((f, i) => {
+  const uniqueFeatures = features.filter((f, i) => {
     const { id, country } = f.properties;
     const isUnique = !_places[id];
     const [lng, lat] = f.geometry.coordinates;
@@ -158,7 +162,7 @@ map.once('load', async () => {
     }
     _countries[country].checkins_count++;
 
-    const nextFeature = data.features[i + 1];
+    const nextFeature = features[i + 1];
     if (nextFeature && f.properties.date === nextFeature.properties.date) {
       let [nextLng, nextLat] = nextFeature.geometry.coordinates;
       // Magic below from https://github.com/mapbox/mapbox-gl-js/issues/3250#issuecomment-294887678
@@ -173,7 +177,10 @@ map.once('load', async () => {
     return isUnique;
   });
 
-  map.getSource('checkins').setData(data);
+  map.getSource('checkins').setData({
+    type: 'FeatureCollection',
+    features: uniqueFeatures,
+  });
   map.getSource('lines').setData({
     type: 'Feature',
     geometry: {
@@ -199,6 +206,7 @@ map.once('load', async () => {
 
   countries.sort((a, b) => b.places_count - a.places_count);
 
+  $countries.replaceChildren();
   countries.forEach((country, i) => {
     const { cc, name, bounds, checkins_count, places_count } = country;
     const $button = document.createElement('button');
@@ -229,6 +237,28 @@ map.once('load', async () => {
     renderNumber($infoCountries, countriesCount);
     bodyClass.add('render');
   });
+}
+
+map.once('load', async () => {
+  const data = await fetch(dataUrl).then((res) => res.json());
+  const allFeatures = data.features;
+
+  // Populate the year selector with the years found in the data (newest first)
+  const years = [
+    ...new Set(allFeatures.map((f) => Math.floor(f.properties.date / 10000))),
+  ].sort((a, b) => b - a);
+  years.forEach((y) => {
+    const $option = document.createElement('option');
+    $option.value = y;
+    $option.textContent = y;
+    $yearSelect.appendChild($option);
+  });
+  $yearSelect.hidden = false;
+  $yearSelect.addEventListener('change', () => {
+    renderYear(allFeatures, Number($yearSelect.value) || null);
+  });
+
+  renderYear(allFeatures, null);
 });
 
 map.once('styledata', () => {
